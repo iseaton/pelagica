@@ -4,7 +4,7 @@ name: Build Backend URL Test Image
 on:
   push:
     branches:
-      - backend-jellyfin-url
+      - backend-jellyfin-connection
   workflow_dispatch:
 
 env:
