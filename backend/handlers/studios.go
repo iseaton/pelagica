@@ -15,9 +15,10 @@ import (
 	"sync"
 	"time"
 
+	"pelagica-backend/jellyfin"
 	"pelagica-backend/models"
 	"pelagica-backend/services"
-
+	
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -119,16 +120,9 @@ func parseJellyfinCredentials(c fiber.Ctx) (string, string, error) {
 		return "", "", errors.New("invalid Authorization header")
 	}
 
-	backendOverride := strings.TrimSpace(c.Query("jellyfin_backend_url"))
-	if backendOverride == "" {
-		backendOverride = strings.TrimSpace(os.Getenv("JELLYFIN_BACKEND_URL"))
-	}
-
-	if backendOverride != "" {
-		if _, err := url.ParseRequestURI(backendOverride); err != nil {
-			return "", "", errors.New("invalid jellyfin_backend_url")
-		}
-		jellyfinURLRaw = backendOverride
+	jellyfinURLRaw, err := jellyfin.BackendURL(c)
+	if err != nil {
+		return "", "", err
 	}
 
 	return jellyfinURLRaw, token, nil
