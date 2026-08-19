@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"pelagica-backend/jellyfin"
 	"pelagica-backend/models"
+	
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -23,7 +25,10 @@ func getSeerURL(c fiber.Ctx) (string, error) {
 		return "", err
 	}
 
-	jellyfinURL := strings.TrimRight(c.Query("jellyfin_url"), "/")
+	jellyfinURL, err := jellyfin.BackendURL(c)
+	if err != nil {
+		return "", err
+	}
 
 	resp, err := http.Get(jellyfinURL + "/Pelagica/Config")
 	if err != nil {
