@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -17,13 +19,21 @@ type UserMeResponse struct {
 	} `json:"Policy"`
 }
 
+func BackendURL(jellyfinURL string) string {
+	if backendURL := strings.TrimSpace(os.Getenv("JELLYFIN_BACKEND_URL")); backendURL != "" {
+		return strings.TrimRight(backendURL, "/")
+	}
+
+	return strings.TrimRight(strings.TrimSpace(jellyfinURL), "/")
+}
+
 func AuthenticateByToken(c fiber.Ctx) (bool, error) {
 	jellyfinURLRaw := c.Query("jellyfin_url")
 	if jellyfinURLRaw == "" {
 		return false, errors.New("missing jellyfin_url query parameter")
 	}
 
-	baseURL, err := url.Parse(jellyfinURLRaw)
+	baseURL, err := url.Parse(BackendURL(jellyfinURLRaw))
 	if err != nil {
 		return false, errors.New("invalid jellyfin_url")
 	}
