@@ -1,10 +1,20 @@
+import { lazy, Suspense } from 'react';
 import { getPlatform } from '@pelagica/core';
-import VideoPlayer from './VideoPlayer';
-import TizenVideoPlayer from './TizenVideoPlayer';
 import type { VideoPlayerProps } from './types';
 
+const VideoPlayer = lazy(() => import('./VideoPlayer'));
+const TizenVideoPlayer = lazy(() => import('./TizenVideoPlayer'));
+
 const PlatformVideoPlayer = (props: VideoPlayerProps) => {
-    return getPlatform() === 'tizen' ? <TizenVideoPlayer {...props} /> : <VideoPlayer {...props} />;
+    return (
+        <Suspense fallback={null}>
+            {getPlatform() === 'tizen' ? (
+                <TizenVideoPlayer {...props} />
+            ) : (
+                <VideoPlayer {...props} />
+            )}
+        </Suspense>
+    );
 };
 
 export default PlatformVideoPlayer;

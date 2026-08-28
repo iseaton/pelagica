@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
+import { useLayerActive } from '@/router';
 import { cn } from '@/lib/utils';
 import { FOCUS_RING_COMPACT, FOCUS_RING_LARGE } from '@/lib/focus-styles';
 import { useScrollIntoViewOnFocus } from '@/lib/use-scroll-into-view-on-focus';
@@ -23,10 +24,11 @@ const FocusableButton = ({
         focusKey,
         onEnterPress: () => ref.current?.click(),
     });
+    const isLayerActive = useLayerActive();
 
     useEffect(() => {
-        if (autoFocus) focusSelf();
-    }, [autoFocus, focusSelf]);
+        if (isLayerActive && autoFocus) focusSelf();
+    }, [isLayerActive, autoFocus, focusSelf]);
 
     useScrollIntoViewOnFocus(ref, focused);
 

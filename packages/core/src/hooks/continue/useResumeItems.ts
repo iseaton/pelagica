@@ -15,6 +15,7 @@ export function useResumeItems(userId: string | null | undefined, limit: number 
                 userId: userId!,
                 limit,
                 fields: ['PrimaryImageAspectRatio'],
+                includeItemTypes: ['Movie', 'Episode'],
                 enableUserData: true,
                 enableImages: true,
             });

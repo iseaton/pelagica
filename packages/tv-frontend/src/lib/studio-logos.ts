@@ -51,6 +51,8 @@ async function fetchAndStoreLogos(db: IDBDatabase): Promise<Logos> {
     const raw = (await res.json()) as Record<string, MinimalLogoCompany>;
     const fresh: Logos = new Map(Object.entries(raw));
 
+    console.log(`Fetched ${fresh.size} logos from ${LATEST_RELEASE_URL}`);
+
     await idbSet(db, 'logos', fresh);
     await idbSet(db, 'logos_ts', Date.now());
 
@@ -76,6 +78,8 @@ function refreshInBackground(db: IDBDatabase): void {
         });
 }
 
+let loadInFlight: Promise<Logos> | undefined;
+
 export async function getLogos(): Promise<Logos> {
     if (memoryCache) {
         if (!memoryCacheTs || Date.now() - memoryCacheTs >= WEEK_MS) {
@@ -84,32 +88,57 @@ export async function getLogos(): Promise<Logos> {
         return memoryCache;
     }
 
-    const db = await openDB();
-    const cached = await idbGet<Logos>(db, 'logos');
-    const ts = await idbGet<number>(db, 'logos_ts');
-
-    const isStale = !ts || Date.now() - ts >= WEEK_MS;
-
-    if (cached) {
-        memoryCache = cached;
-        memoryCacheTs = ts;
-        if (isStale) {
-            refreshInBackground(db);
-        }
-        return cached;
+    if (loadInFlight) {
+        return loadInFlight;
     }
 
+    loadInFlight = (async () => {
+        const db = await openDB();
+        const cached = await idbGet<Logos>(db, 'logos');
+        const ts = await idbGet<number>(db, 'logos_ts');
+
+        const isStale = !ts || Date.now() - ts >= WEEK_MS;
+
+        if (cached) {
+            memoryCache = cached;
+            memoryCacheTs = ts;
+            if (isStale) {
+                refreshInBackground(db);
+            }
+            return cached;
+        }
+
+        try {
+            const fresh = await fetchAndStoreLogos(db);
+            memoryCache = fresh;
+            memoryCacheTs = Date.now();
+            return fresh;
+        } catch (e) {
+            throw new Error('No cached logos available and network fetch failed', { cause: e });
+        }
+    })();
+
     try {
-        const fresh = await fetchAndStoreLogos(db);
-        memoryCache = fresh;
-        memoryCacheTs = Date.now();
-        return fresh;
-    } catch (e) {
-        throw new Error('No cached logos available and network fetch failed', { cause: e });
+        return await loadInFlight;
+    } finally {
+        loadInFlight = undefined;
     }
 }
 
 export async function getLogoPath(studioName: string): Promise<string | undefined> {
     const logos = await getLogos();
     return logos.get(studioName)?.logo_path;
+}
+
+export async function clearLogosCache(): Promise<void> {
+    memoryCache = undefined;
+    memoryCacheTs = undefined;
+
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).clear();
+    return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
 import { getUserId, useGenreItems, useItem } from '@pelagica/core';
 import ItemPagination from '../components/ItemPagination';

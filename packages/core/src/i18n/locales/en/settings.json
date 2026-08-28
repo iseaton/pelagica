@@ -10,6 +10,7 @@
     "homesections_description": "Configure the sections displayed on the home screen.",
     "no_sections_configured": "No sections configured.",
     "add_section": "Add Section",
+    "reorder_section": "Reorder section",
     "edit_section": "Edit Section",
     "section_title_label": "Section Title",
     "section_type_label": "Section Type",
@@ -179,5 +180,8 @@
     "account_section_title": "Account",
     "language_section_title": "Language",
     "about_section_title": "About",
-    "version_label": "Pelagica Version"
+    "version_label": "Pelagica Version",
+    "application_section_title": "Application",
+    "clear_logo_cache_button": "Clear Logo Cache",
+    "clear_logo_cache_success": "Logo cache cleared successfully!"
 }

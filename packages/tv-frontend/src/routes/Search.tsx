@@ -7,7 +7,9 @@ import {
     EmptyTitle,
 } from '@/components/ui/empty';
 import { getUserId, useGenresWithItems, useSearchItems } from '@pelagica/core';
-import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable } from '@/router/useLayerFocusable';
+import { useLayerId } from '@/router';
 import { CircleQuestionMark, SearchIcon, TriangleAlert } from 'lucide-react';
 import { startTransition, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,15 +17,14 @@ import GenreCard from '../components/GenreCard';
 import { Skeleton } from '../components/ui/skeleton';
 import ItemCardGrid from '../components/ItemCardGrid';
 
-const SEARCH_INPUT_FOCUS_KEY = 'search-page-input';
-
 const Search = () => {
     const { t } = useTranslation('search');
     const { data: genres } = useGenresWithItems();
     const [query, setQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
-    const { ref, focusKey } = useFocusable<object, HTMLDivElement>({
-        preferredChildFocusKey: SEARCH_INPUT_FOCUS_KEY,
+    const searchInputFocusKey = `${useLayerId()}:search-page-input`;
+    const { ref, focusKey } = useLayerFocusable<object, HTMLDivElement>({
+        preferredChildFocusKey: searchInputFocusKey,
     });
     const {
         data: results,
@@ -51,7 +52,7 @@ const Search = () => {
         <FocusContext.Provider value={focusKey}>
             <div ref={ref} className="flex flex-col gap-6">
                 <FocusableField
-                    focusKey={SEARCH_INPUT_FOCUS_KEY}
+                    focusKey={searchInputFocusKey}
                     type="text"
                     placeholder={t('input_placeholder')}
                     value={query}

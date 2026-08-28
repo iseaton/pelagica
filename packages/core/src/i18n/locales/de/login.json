@@ -30,7 +30,7 @@
     "sign_in_with_quick_connect": "Mit Quick Connect anmelden",
     "sign_in_with_password": "Mit Benutzernamen und Passwort anmelden",
     "use_different_server": "Einen anderen Server verwenden",
-    "quick_connect_qr_instructions": "Scanne diesen QR-Code und autorisiere den Code oder gehe zu {{server}} mit deinem Smartphone oder Laptop, melde dich an und giv diesen Code manuell ein.",
+    "quick_connect_qr_instructions": "Scanne diesen QR-Code und autorisiere den Code oder gehe zu {{server}} mit deinem Smartphone oder Laptop, melde dich an und gib diesen Code manuell ein.",
     "quick_connect_unavailable": "Quick Connect ist nicht verfügbar auf diesem Server",
     "quick_connect_auth_failed": "Quick Connect authentifizierung fehlgeschlagen",
     "invalid_credentials": "Ungültiger Benutzername oder Passwort"

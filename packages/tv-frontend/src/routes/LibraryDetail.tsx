@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
 import { COLLECTION_ITEM_TYPES, useLibraryItems, useUserViews } from '@pelagica/core';
 import type { CollectionType } from '@jellyfin/sdk/lib/generated-client/models';

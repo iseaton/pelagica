@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
 import { getUserId, useItem, useSimilarItems } from '@pelagica/core';
 import { Badge } from '@/components/ui/badge';

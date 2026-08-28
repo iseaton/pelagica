@@ -1,6 +1,7 @@
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models';
 import ItemCard from './ItemCard';
-import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 
 const ItemCardSkeleton = () => (
     <div className="w-40 shrink-0">

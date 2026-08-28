@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useBackKeyIntercept, useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
 import {
     useReportPlaybackProgress,
@@ -23,7 +23,6 @@ import { type SubtitleTrack, type TvPlayer } from '@pelagica/tv-platform';
 import PlatformVideoPlayer from '@/components/player/PlatformVideoPlayer';
 import PlayerControls, { type PlayerControlsHandle } from '@/components/player/PlayerControls';
 import PlayerLoading from '@/components/player/PlayerLoading';
-import { useTvBackKey } from '@/lib/use-tv-back-key';
 import { getLastAudioLanguage, getLastSubtitleLanguage } from '@/lib/localstorageLastlanguage';
 
 const PLAYBACK_PROGRESS_REPORT_MIN_PLAYTIME_SECONDS = 5;
@@ -32,18 +31,10 @@ const FONT_ATTACHMENT_EXTENSION_PATTERN = /\.(ttf|otf|woff2?)$/i;
 
 const Player = () => {
     const controlsRef = useRef<PlayerControlsHandle>(null);
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const backUrl = searchParams.get('backUrl');
     const handleBackKeyIntercept = useCallback(() => {
-        if (controlsRef.current?.handleBackKey()) return true;
-        if (backUrl) {
-            navigate(backUrl);
-            return true;
-        }
-        return false;
-    }, [backUrl, navigate]);
-    useTvBackKey(handleBackKeyIntercept);
+        return controlsRef.current?.handleBackKey() ?? false;
+    }, []);
+    useBackKeyIntercept(handleBackKeyIntercept);
     const { t } = useTranslation(['player', 'item']);
 
     const { itemId } = useParams<{ itemId: string }>();
@@ -183,7 +174,7 @@ const Player = () => {
 
     const posterUrl = useMemo(() => {
         if (!item?.Id) return undefined;
-        return getPrimaryImageUrl(item?.Id);
+        return getPrimaryImageUrl(item?.Id, { width: 1920 });
     }, [item?.Id]);
 
     const startTicks = item?.UserData?.PlaybackPositionTicks || 0;

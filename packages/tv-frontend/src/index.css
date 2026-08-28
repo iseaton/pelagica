@@ -9,11 +9,6 @@ body {
     margin: 0;
 }
 
-.backdrop-blur {
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-}
-
 .poster-card-outline {
     border: 1px solid var(--border);
     box-shadow: inset 0 0 0 0 transparent;

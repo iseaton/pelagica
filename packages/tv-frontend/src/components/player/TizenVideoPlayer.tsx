@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AvPlayPlayerAdapter, createAvPlayPlayerAdapter } from '@pelagica/tv-platform';
+import { useLayerActive } from '@/router';
 import type { VideoPlayerProps } from './types';
 
 const STALL_TIMEOUT_MS = 20_000;
@@ -28,6 +29,7 @@ const TizenVideoPlayer = ({
     const audioTrackIndexRef = useRef(audioTrackIndex);
     const audioStreamsRef = useRef(audioStreams);
     const [activeCueText, setActiveCueText] = useState('');
+    const isLayerActive = useLayerActive();
 
     useEffect(() => {
         onPlaybackStalledRef.current = onPlaybackStalled;
@@ -55,6 +57,8 @@ const TizenVideoPlayer = ({
 
     // AVPlay hardware video plane is below HTML layer so we punch a hole in the HTML
     useEffect(() => {
+        if (!isLayerActive) return;
+
         const html = document.documentElement;
         const body = document.body;
         const prevHtmlBackground = html.style.background;
@@ -66,7 +70,7 @@ const TizenVideoPlayer = ({
             html.style.background = prevHtmlBackground;
             body.style.background = prevBodyBackground;
         };
-    }, []);
+    }, [isLayerActive]);
 
     useEffect(() => {
         const avplay = window.webapis?.avplay;

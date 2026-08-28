@@ -16,12 +16,18 @@ export default defineConfig({
             'react-i18next',
             'react',
             'react-dom',
-            'react-router-dom',
             '@tanstack/react-query',
             '@noriginmedia/norigin-spatial-navigation',
         ],
     },
     build: {
         outDir: 'www',
+        rolldownOptions: {
+            output: {
+                codeSplitting: {
+                    groups: [{ name: 'videojs', test: /\/video\.js\// }],
+                },
+            },
+        },
     },
 });

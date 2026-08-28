@@ -33,5 +33,8 @@
     "quick_connect_qr_instructions": "Scan this QR code and authorize or go to {{server}} on your phone or computer, sign in, and enter this code manually.",
     "quick_connect_unavailable": "Quick Connect is not available on this server",
     "quick_connect_auth_failed": "Quick Connect authentication failed",
-    "invalid_credentials": "Invalid username or password"
+    "invalid_credentials": "Invalid username or password",
+    "discovered_servers": "Servers on your network",
+    "scanning_network": "Scanning...",
+    "enter_manually": "Enter a server address manually"
 }

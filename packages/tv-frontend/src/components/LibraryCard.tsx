@@ -39,7 +39,7 @@ const LibraryCard = ({
                             </div>
                         ) : (
                             <img
-                                src={getPrimaryImageUrl(item.Id, { width: 448 })}
+                                src={getPrimaryImageUrl(item.Id, { width: 960 })}
                                 alt={item.Name || t('unknown_library')}
                                 className="h-full w-full object-cover"
                                 onError={() => setImageError(true)}

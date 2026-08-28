@@ -1,5 +1,5 @@
 import { getUserId, useBoxSetItems, useItem } from '@pelagica/core';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
 import ItemHero from '../components/ItemHero';
 import FavoriteButton from '../components/FavoriteButton';

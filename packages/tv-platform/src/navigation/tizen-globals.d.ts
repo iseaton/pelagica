@@ -67,6 +67,10 @@ declare global {
         setTimeoutForBuffering(seconds: number): void;
     }
 
+    interface TizenNetworkPropertyValue {
+        ipAddress?: string;
+    }
+
     interface Window {
         tizen?: {
             application: {
@@ -81,6 +85,13 @@ declare global {
                 isMute: () => boolean;
                 setVolume: (volume: number) => void;
                 getVolume: () => number;
+            };
+            systeminfo?: {
+                getPropertyValue: (
+                    property: 'WIFI_NETWORK' | 'ETHERNET_NETWORK',
+                    successCallback: (value: TizenNetworkPropertyValue) => void,
+                    errorCallback?: (error: unknown) => void
+                ) => void;
             };
         };
         webapis?: {

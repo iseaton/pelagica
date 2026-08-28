@@ -1,4 +1,4 @@
-import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 import { cn } from '@/lib/utils';
 import { FOCUS_RING_COMPACT } from '@/lib/focus-styles';
 import { useScrollIntoViewOnFocus } from '@/lib/use-scroll-into-view-on-focus';

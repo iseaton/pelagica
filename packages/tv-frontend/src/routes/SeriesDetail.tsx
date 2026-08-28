@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@/router';
 import { useTranslation } from 'react-i18next';
-import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 import {
     getPrimaryImageUrl,
     getUserId,
@@ -30,7 +31,6 @@ import { buildPlayerUrl } from '@/lib/playerUrl';
 const EpisodeCard = ({ episode, autoFocus }: { episode: BaseItemDto; autoFocus?: boolean }) => {
     const [imageError, setImageError] = useState(false);
     const navigate = useNavigate();
-    const location = useLocation();
     const { t } = useTranslation('item');
     const { ref, focused, focusSelf } = useFocusable<object, HTMLButtonElement>({
         onEnterPress: () => ref.current?.click(),
@@ -54,13 +54,9 @@ const EpisodeCard = ({ episode, autoFocus }: { episode: BaseItemDto; autoFocus?:
     return (
         <button
             ref={ref}
-            onClick={() =>
-                episode &&
-                episode.Id &&
-                navigate(buildPlayerUrl(episode.Id, location.pathname + location.search))
-            }
+            onClick={() => episode && episode.Id && navigate(buildPlayerUrl(episode.Id))}
             type="button"
-            className="w-64 shrink-0 scroll-m-6 text-left outline-none"
+            className="w-64 shrink-0 scroll-m-6 text-left outline-none flex flex-col"
         >
             <div
                 className={cn(
@@ -76,7 +72,7 @@ const EpisodeCard = ({ episode, autoFocus }: { episode: BaseItemDto; autoFocus?:
                     <img
                         src={getPrimaryImageUrl(
                             episode.Id,
-                            { width: 400 },
+                            { width: 1024 },
                             episode.ImageTags?.Primary
                         )}
                         alt={episode.Name || t('unknown_episode')}

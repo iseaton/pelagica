@@ -11,6 +11,7 @@ import GenresRow from '../components/home/GenresRow';
 import RecommendedItemsRow from '../components/home/RecommendedItemsRow';
 import StudiosRow from '../components/home/StudiosRow';
 import MediaBarRow from '../components/home/MediaBarRow';
+import { getHomerowItemLimit } from '../lib/limit-homerow-items';
 
 function getDetailFieldsForCollectionType(type: CollectionType | undefined): DetailField[] {
     switch (type) {
@@ -52,7 +53,7 @@ const Home = () => {
                                 accurateSorting={section.accurateSorting}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                             />
                         );
                     case 'resume':
@@ -62,7 +63,7 @@ const Home = () => {
                                 title={t('resume')}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                             />
                         );
                     case 'nextUp':
@@ -72,7 +73,7 @@ const Home = () => {
                                 title={t('next_up')}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                             />
                         );
                     case 'libraries':
@@ -120,7 +121,7 @@ const Home = () => {
                             <GenresRow
                                 key={index}
                                 title={section.title || t('genres')}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                             />
                         );
                     case 'streamystatsRecommended':
@@ -129,7 +130,7 @@ const Home = () => {
                                 key={index}
                                 title={section.title || t('recommended_items')}
                                 type={section.recommendationType}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                                 showSimilarity={section.showSimilarity}
                             />
                         );
@@ -138,7 +139,7 @@ const Home = () => {
                             <StudiosRow
                                 key={index}
                                 title={section.title || t('studios')}
-                                limit={section.limit}
+                                limit={getHomerowItemLimit(section.limit)}
                             />
                         );
                     default:

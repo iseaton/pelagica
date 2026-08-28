@@ -1,6 +1,3 @@
-export function buildPlayerUrl(itemId: string, backUrl?: string | null): string {
-    if (backUrl) {
-        return `/player/${itemId}?backUrl=${encodeURIComponent(backUrl)}`;
-    }
+export function buildPlayerUrl(itemId: string): string {
     return `/player/${itemId}`;
 }

@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
-import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 import { RowIdentityContext } from '@/lib/row-identity-context';
 
 const ScrollableHomeSection = ({

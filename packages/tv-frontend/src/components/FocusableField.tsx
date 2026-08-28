@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
-import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 import { cn } from '@/lib/utils';
 import { useScrollIntoViewOnFocus } from '@/lib/use-scroll-into-view-on-focus';
 

@@ -2,6 +2,7 @@ import { useStudiosByItemCount } from '@pelagica/core';
 import ScrollableHomeSection from './ScrollableHomeSection';
 import { Skeleton } from '../ui/skeleton';
 import StudioCard from '../StudioCard';
+import MoreCard from './MoreCard';
 
 interface StudiosRowProps {
     title?: string;
@@ -29,6 +30,7 @@ const StudiosRow = ({ title, limit }: StudiosRowProps) => {
                           <Skeleton className="w-full aspect-video rounded-md" />
                       </div>
                   ))}
+            <MoreCard to="/studios" type="vertical" className={CARD_CLASS} />
         </ScrollableHomeSection>
     );
 };

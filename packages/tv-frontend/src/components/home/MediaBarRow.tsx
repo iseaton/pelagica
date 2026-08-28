@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext } from '@noriginmedia/norigin-spatial-navigation';
+import { useLayerFocusable as useFocusable } from '@/router/useLayerFocusable';
 import {
     getBackdropUrl,
     getLogoUrl,
@@ -17,7 +18,7 @@ import { formatRuntime } from '@/lib/formatRuntime';
 import WatchlistButton from '../WatchlistButton';
 import FavoriteButton from '../FavoriteButton';
 import FocusableButton from '../FocusableButton';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/router';
 import { getItemLink } from '../../lib/getItemLink';
 
 const HEIGHT_CLASSES: Record<MediabarSize, string> = {

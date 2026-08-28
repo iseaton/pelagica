@@ -14,15 +14,10 @@ import {
     Dot,
     Check,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLayerId, useNavigate } from '@/router';
+import { useLayerFocusable } from '@/router/useLayerFocusable';
 import { useTranslation } from 'react-i18next';
-import {
-    FocusContext,
-    pause,
-    resume,
-    setFocus,
-    useFocusable,
-} from '@noriginmedia/norigin-spatial-navigation';
+import { FocusContext, pause, resume, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type {
     BaseItemDto,
     MediaSegmentDto,
@@ -44,8 +39,6 @@ import { buildPlayerUrl } from '@/lib/playerUrl';
 
 const SEEK_SECONDS = 10;
 const HIDE_CONTROLS_TIMEOUT_MS = 5000;
-
-const PLAY_PAUSE_FOCUS_KEY = 'player-play-pause';
 
 // Some TV browsers (older Tizen WebKit included) still report the pre-standardization
 // key names ('Up'/'Down'/'Left'/'Right') instead of 'ArrowUp' etc.
@@ -124,8 +117,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
         const [dismissedNextItemPrompt, setDismissedNextItemPrompt] = useState(false);
         const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         const navigate = useNavigate();
-        const [searchParams] = useSearchParams();
-        const backUrl = searchParams.get('backUrl');
+        const playPauseFocusKey = `${useLayerId()}:player-play-pause`;
         const { reportProgress } = useReportPlaybackProgress();
         const [backButtonLogoFailed, setBackButtonLogoFailed] = useState(false);
 
@@ -153,8 +145,8 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
 
         const closeTrackMenu = useCallback(() => {
             setOpenMenu(null);
-            setFocus(PLAY_PAUSE_FOCUS_KEY);
-        }, []);
+            setFocus(playPauseFocusKey);
+        }, [playPauseFocusKey]);
 
         useEffect(() => {
             resetHideTimeout();
@@ -167,13 +159,13 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
         useEffect(() => {
             function handleKeyDown(event: KeyboardEvent) {
                 if (!isNavigationKey(event)) return;
-                if (!showControls) setFocus(PLAY_PAUSE_FOCUS_KEY);
+                if (!showControls) setFocus(playPauseFocusKey);
                 resetHideTimeout();
             }
 
             window.addEventListener('keydown', handleKeyDown);
             return () => window.removeEventListener('keydown', handleKeyDown);
-        }, [resetHideTimeout, showControls]);
+        }, [resetHideTimeout, showControls, playPauseFocusKey]);
 
         useImperativeHandle(
             ref,
@@ -210,7 +202,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
             const handleEnded = () => {
                 if (!nextItem) return;
                 markItemAsCompleted(item.Id);
-                navigate(buildPlayerUrl(nextItem.Id!, backUrl));
+                navigate(buildPlayerUrl(nextItem.Id!), { mode: 'replace' });
             };
 
             player.on('play', updatePlayState);
@@ -232,7 +224,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                 player.off('volumechange', updateMuted);
                 player.off('ended', handleEnded);
             };
-        }, [player, nextItem, item.Id, navigate, markItemAsCompleted, backUrl]);
+        }, [player, nextItem, item.Id, navigate, markItemAsCompleted]);
 
         const togglePlay = useCallback(() => {
             if (!player) return;
@@ -319,7 +311,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
             if (segment?.EndTicks) {
                 player.seekTo(ticksToSeconds(segment.EndTicks));
             }
-            setFocus(PLAY_PAUSE_FOCUS_KEY);
+            setFocus(playPauseFocusKey);
         };
 
         const introSegment = getMediaSegment('Intro');
@@ -377,11 +369,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                         pointerEvents: showControls ? 'auto' : 'none',
                     }}
                 >
-                    <FocusableButton
-                        variant="ghost"
-                        floating
-                        onClick={() => (backUrl ? navigate(backUrl) : navigate(-1))}
-                    >
+                    <FocusableButton variant="ghost" floating onClick={() => navigate(-1)}>
                         <ArrowLeft />
                     </FocusableButton>
                     {backButtonLogoFailed ? (
@@ -450,7 +438,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                                         if (!player) return;
                                         player.pause();
                                         markItemAsCompleted(item.Id);
-                                        navigate(buildPlayerUrl(nextItem.Id!, backUrl));
+                                        navigate(buildPlayerUrl(nextItem.Id!), { mode: 'replace' });
                                     }}
                                 >
                                     <SkipForward />
@@ -461,7 +449,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                                     className="flex-1"
                                     onClick={() => {
                                         setDismissedNextItemPrompt(true);
-                                        setFocus(PLAY_PAUSE_FOCUS_KEY);
+                                        setFocus(playPauseFocusKey);
                                     }}
                                 >
                                     {t('player:dismiss')}
@@ -549,7 +537,9 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                                     floating
                                     title={t('player:previousItem')}
                                     onClick={() =>
-                                        navigate(buildPlayerUrl(previousItem.Id!, backUrl))
+                                        navigate(buildPlayerUrl(previousItem.Id!), {
+                                            mode: 'replace',
+                                        })
                                     }
                                 >
                                     <SkipBack size={24} />
@@ -568,7 +558,7 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                             )}
                             <FocusableButton
                                 autoFocus
-                                focusKey={PLAY_PAUSE_FOCUS_KEY}
+                                focusKey={playPauseFocusKey}
                                 variant="ghost"
                                 size="icon-lg"
                                 floating
@@ -593,7 +583,9 @@ const PlayerControls = forwardRef<PlayerControlsHandle, PlayerControlsProps>(
                                     size="icon-lg"
                                     floating
                                     title={t('player:nextItem')}
-                                    onClick={() => navigate(buildPlayerUrl(nextItem.Id!, backUrl))}
+                                    onClick={() =>
+                                        navigate(buildPlayerUrl(nextItem.Id!), { mode: 'replace' })
+                                    }
                                 >
                                     <SkipForward size={24} />
                                 </FocusableButton>
@@ -658,7 +650,7 @@ function TrackMenuPanel({
     children: React.ReactNode;
 }) {
     const { t } = useTranslation('common');
-    const { ref, focusKey } = useFocusable<object, HTMLDivElement>({
+    const { ref, focusKey } = useLayerFocusable<object, HTMLDivElement>({
         isFocusBoundary: true,
         focusable: false,
     });
@@ -692,7 +684,7 @@ function TrackOption({
     autoFocus?: boolean;
     onClick: () => void;
 }) {
-    const { ref, focused, focusSelf } = useFocusable<object, HTMLButtonElement>({
+    const { ref, focused, focusSelf } = useLayerFocusable<object, HTMLButtonElement>({
         onEnterPress: () => ref.current?.click(),
     });
 

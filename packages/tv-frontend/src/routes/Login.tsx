@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/router';
 import { useTranslation } from 'react-i18next';
 import {
     getJellyfinInstance,
     getServerUrl,
     saveServerUrl,
+    useDiscoverServers,
     useLogin,
     useQuickConnectAuthenticate,
     useQuickConnectInitiate,
     useQuickConnectStatus,
     useServerAddress,
 } from '@pelagica/core';
+import { getTizenLocalIpAddress } from '@pelagica/tv-platform';
 import FocusableButton from '@/components/FocusableButton';
 import FocusableField from '@/components/FocusableField';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2, Server } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { getQuickConnectUrl } from '@/utils/quickConnectUrl';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,6 +39,9 @@ const Login = () => {
     const [step, setStep] = useState<Step>(() => (getServerUrl() ? 'method' : 'server'));
     const [checkingServer, setCheckingServer] = useState(false);
     const [serverCheckError, setServerCheckError] = useState<string | null>(null);
+
+    const discovery = useDiscoverServers();
+    const discoveryStartedRef = useRef(false);
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -63,18 +68,17 @@ const Login = () => {
         setStep('method');
     }, [predefinedServerAddress]);
 
-    const onSubmitServer = useCallback(
-        async (e: FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
+    useEffect(() => {
+        if (step !== 'server' || predefinedServerAddress || discoveryStartedRef.current) return;
+        discoveryStartedRef.current = true;
+        getTizenLocalIpAddress().then((localIp) => discovery.start(localIp));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, predefinedServerAddress]);
+
+    const connectToServer = useCallback(
+        async (input: string) => {
             setCheckingServer(true);
             setServerCheckError(null);
-
-            const input = String(new FormData(e.currentTarget).get('server') ?? '').trim();
-            if (!input) {
-                setServerCheckError(t('login:please_enter_server_address'));
-                setCheckingServer(false);
-                return;
-            }
 
             try {
                 const servers =
@@ -90,9 +94,21 @@ const Login = () => {
             } finally {
                 setCheckingServer(false);
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
         [t]
+    );
+
+    const onSubmitServer = useCallback(
+        (e: FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const input = String(new FormData(e.currentTarget).get('server') ?? '').trim();
+            if (!input) {
+                setServerCheckError(t('login:please_enter_server_address'));
+                return;
+            }
+            connectToServer(input);
+        },
+        [connectToServer, t]
     );
 
     const initiateQuickConnect = useCallback(async () => {
@@ -130,7 +146,7 @@ const Login = () => {
 
         quickConnectAuthenticate
             .mutateAsync({ server: serverUrl, secret: quickConnectSecret })
-            .then(() => navigate('/', { replace: true }))
+            .then(() => navigate('/', { mode: 'reset' }))
             .catch(() => {
                 setQuickConnectError(t('login:quick_connect_auth_failed'));
                 setQuickConnectApproved(false);
@@ -151,7 +167,7 @@ const Login = () => {
             setLoginError(null);
             try {
                 await login.mutateAsync({ server: serverUrl, username, password });
-                navigate('/', { replace: true });
+                navigate('/', { mode: 'reset' });
             } catch {
                 setLoginError(t('login:invalid_credentials'));
             }
@@ -169,21 +185,59 @@ const Login = () => {
             </div>
 
             {step === 'server' && (
-                <form onSubmit={onSubmitServer} className="flex w-full max-w-sm flex-col gap-3">
-                    <label className="text-sm text-muted-foreground" htmlFor="server">
-                        {t('login:server_address')}
-                    </label>
-                    <FocusableField
-                        id="server"
-                        name="server"
-                        placeholder="jellyfin.example.com"
-                        autoFocus
-                    />
-                    {serverCheckError && <ErrorMessage message={serverCheckError} />}
-                    <FocusableButton type="submit" disabled={checkingServer}>
-                        {checkingServer ? t('login:connecting') : t('login:connect')}
-                    </FocusableButton>
-                </form>
+                <div className="flex w-full max-w-sm flex-col gap-3">
+                    <form onSubmit={onSubmitServer} className="flex flex-col gap-3">
+                        <label className="text-sm text-muted-foreground" htmlFor="server">
+                            {discovery.servers.length > 0
+                                ? t('login:enter_manually')
+                                : t('login:server_address')}
+                        </label>
+                        <FocusableField
+                            id="server"
+                            name="server"
+                            placeholder="jellyfin.example.com"
+                            autoFocus={discovery.servers.length === 0 && !discovery.isScanning}
+                        />
+                        {serverCheckError && <ErrorMessage message={serverCheckError} />}
+                        <FocusableButton type="submit" disabled={checkingServer}>
+                            {checkingServer ? t('login:connecting') : t('login:connect')}
+                        </FocusableButton>
+                    </form>
+
+                    {(discovery.isScanning || discovery.servers.length > 0) && (
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">
+                                    {t('login:discovered_servers')}
+                                </span>
+                                {discovery.isScanning && (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        {t('login:scanning_network')}
+                                    </span>
+                                )}
+                            </div>
+                            {discovery.servers.map((server, index) => (
+                                <FocusableButton
+                                    key={server.id ?? server.address}
+                                    variant="outline"
+                                    className="justify-start"
+                                    autoFocus={index === 0}
+                                    disabled={checkingServer}
+                                    onClick={() => connectToServer(server.address)}
+                                >
+                                    <Server className="h-4 w-4 shrink-0" />
+                                    <span className="flex items-center justify-between w-full overflow-hidden">
+                                        <span className="truncate">{server.name}</span>
+                                        <span className="truncate text-[0.625rem]! text-muted-foreground">
+                                            {server.address}
+                                        </span>
+                                    </span>
+                                </FocusableButton>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
 
             {step === 'method' && (

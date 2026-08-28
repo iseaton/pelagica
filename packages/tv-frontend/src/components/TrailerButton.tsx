@@ -1,7 +1,7 @@
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models';
 import { useLocalTrailers } from '@pelagica/core';
 import FocusableButton from './FocusableButton';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/router';
 import { Film } from 'lucide-react';
 import { buildPlayerUrl } from '@/lib/playerUrl';
 
@@ -12,7 +12,6 @@ interface TrailerButtonProps {
 const TrailerButton = ({ item }: TrailerButtonProps) => {
     const hasLocalTrailers = (item.LocalTrailerCount ?? 0) > 0;
     const navigate = useNavigate();
-    const location = useLocation();
     const { data: localTrailers } = useLocalTrailers(item.Id ?? undefined, hasLocalTrailers);
 
     if (!hasLocalTrailers || !localTrailers || localTrailers.length === 0) {
@@ -25,9 +24,7 @@ const TrailerButton = ({ item }: TrailerButtonProps) => {
         <FocusableButton
             variant="outline"
             size="lg"
-            onClick={() =>
-                navigate(buildPlayerUrl(firstTrailer.Id!, location.pathname + location.search))
-            }
+            onClick={() => navigate(buildPlayerUrl(firstTrailer.Id!))}
         >
             <Film />
             Trailer
