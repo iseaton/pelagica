@@ -32,6 +32,7 @@ const Home = () => {
     return (
         <div className="flex flex-col items-start gap-6">
             {config.homeScreenSections?.map((section, index) => {
+                if (section.enabled === false) return null;
                 switch (section.type) {
                     case 'mediaBar':
                         return (
@@ -53,6 +54,7 @@ const Home = () => {
                                 accurateSorting={section.accurateSorting}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
+                                useSeriesImage={section.useSeriesImage}
                                 limit={getHomerowItemLimit(section.limit)}
                             />
                         );
@@ -63,6 +65,7 @@ const Home = () => {
                                 title={t('resume')}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
+                                useSeriesImage={section.useSeriesImage}
                                 limit={getHomerowItemLimit(section.limit)}
                             />
                         );
@@ -73,6 +76,7 @@ const Home = () => {
                                 title={t('next_up')}
                                 titleLine={section.titleLine}
                                 detailLine={section.detailLine}
+                                useSeriesImage={section.useSeriesImage}
                                 limit={getHomerowItemLimit(section.limit)}
                             />
                         );

@@ -11,6 +11,7 @@ import {
     useQuickConnectInitiate,
     useQuickConnectStatus,
     useQuickConnectAuthenticate,
+    getQuickConnectUrl,
 } from '@pelagica/core';
 import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router';
@@ -20,6 +21,7 @@ import { useServerAddress } from '@pelagica/core';
 import { getServerUrl, saveServerUrl } from '@pelagica/core';
 import { useServerBranding } from '@pelagica/core';
 import DOMPurify from 'dompurify';
+import QRCode from 'react-qr-code';
 
 const DEMO_SERVER_URL = 'https://jellyfin.streamyfin.app';
 const DEMO_USERNAME = 'pelagica';
@@ -205,7 +207,7 @@ const LoginPage = () => {
         const usernameInput = form.querySelector('#username') as HTMLInputElement;
         const passwordInput = form.querySelector('#password') as HTMLInputElement;
         const username = usernameInput?.value?.trim();
-        const password = passwordInput?.value?.trim();
+        const password = passwordInput?.value;
 
         if (!username) {
             setLoginError(t('enter_at_least_username'));
@@ -242,6 +244,8 @@ const LoginPage = () => {
         saveServerUrl('');
         setServerUrl('');
     };
+
+    const quickConnectUrl = quickConnectCode ? getQuickConnectUrl(quickConnectCode) : null;
 
     return (
         <Page
@@ -399,6 +403,14 @@ const LoginPage = () => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {quickConnectUrl && (
+                            <div className="flex flex-col items-center justify-center mb-8">
+                                <div className="flex items-center justify-center bg-white p-4 rounded-md w-min">
+                                    <QRCode value={quickConnectUrl} />
+                                </div>
+                            </div>
+                        )}
+
                         {quickConnectInitiate.isPending && !quickConnectCode && (
                             <div className="flex flex-col items-center justify-center py-8">
                                 <Spinner />

@@ -1,14 +1,12 @@
 import type { BaseItemDto } from '@jellyfin/sdk/lib/generated-client/models';
 import {
-    getBackdropUrl,
+    getContinueWatchingImageUrls,
     getDetailLineText,
-    getPrimaryImageUrl,
-    getThumbUrl,
     getTitleLineText,
     type ContinueWatchingDetailLine,
     type ContinueWatchingTitleLine,
 } from '@pelagica/core';
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FocusableCard from '../FocusableCard';
 import { cn } from '@/lib/utils';
@@ -25,39 +23,34 @@ interface BaseContinueRowProps {
     title: string;
     titleLine?: ContinueWatchingTitleLine;
     detailLine?: ContinueWatchingDetailLine[];
+    useSeriesImage?: boolean;
 }
-type ImageState = 'thumb' | 'backdrop' | 'primary' | 'failed';
 
-const ContinueEpisodeCard = ({
+const ContinueEpisodeCard = memo(function ContinueEpisodeCard({
     item,
-    imageState,
+    imageIndex,
     onImageError,
     autoFocus,
     className,
     titleLine,
     detailLine,
+    useSeriesImage,
 }: {
     item: BaseItemDto;
-    imageState: ImageState;
+    imageIndex: number;
     onImageError: (item: BaseItemDto) => void;
     autoFocus?: boolean;
     className?: string;
     titleLine?: ContinueWatchingTitleLine;
     detailLine?: ContinueWatchingDetailLine[];
-}) => {
+    useSeriesImage?: boolean;
+}) {
     const { t } = useTranslation('home');
     const watched = item.UserData?.PlaybackPositionTicks ?? 0;
     const runtime = item.RunTimeTicks ?? 0;
     const progress = runtime > 0 ? (watched / runtime) * 100 : 0;
 
-    const imageSrc =
-        imageState === 'thumb'
-            ? getThumbUrl(item.Id!, { width: 416 }, item.ImageTags?.Thumb)
-            : imageState === 'backdrop'
-              ? getBackdropUrl(item.Id!, { width: 416 }, item.BackdropImageTags?.[0])
-              : imageState === 'primary'
-                ? getPrimaryImageUrl(item.Id!, { width: 416 }, item.ImageTags?.Primary)
-                : '';
+    const imageSrc = getContinueWatchingImageUrls(item, useSeriesImage)[imageIndex];
 
     return (
         <FocusableCard
@@ -73,7 +66,7 @@ const ContinueEpisodeCard = ({
                             focused && FOCUS_RING_LARGE
                         )}
                     >
-                        {imageState === 'failed' || !item.Id ? (
+                        {!imageSrc || !item.Id ? (
                             <div className="flex h-full w-full items-center justify-center">
                                 <ImageOff className="h-8 w-8 text-muted-foreground" />
                             </div>
@@ -131,7 +124,7 @@ const ContinueEpisodeCard = ({
             )}
         </FocusableCard>
     );
-};
+});
 
 const BaseContinueRow = ({
     items,
@@ -140,51 +133,24 @@ const BaseContinueRow = ({
     title,
     titleLine,
     detailLine,
+    useSeriesImage,
 }: BaseContinueRowProps) => {
     const { t } = useTranslation('home');
-    const [imageStates, setImageStates] = useState<Record<string, ImageState>>({});
+    const [imageIndices, setImageIndices] = useState<Record<string, number>>({});
 
-    const handleImageError = (item: BaseItemDto) => {
+    const handleImageError = useCallback((item: BaseItemDto) => {
         const id = item.Id;
         if (!id) return;
 
-        const state = imageStates[id] ?? 'thumb';
+        setImageIndices((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
+    }, []);
 
-        switch (state) {
-            case 'thumb':
-                if (item.BackdropImageTags?.length) {
-                    setImageStates((prev) => ({
-                        ...prev,
-                        [id]: 'backdrop',
-                    }));
-                    return;
-                }
-
-                if (item.ImageTags?.Primary) {
-                    setImageStates((prev) => ({
-                        ...prev,
-                        [id]: 'primary',
-                    }));
-                    return;
-                }
-                break;
-
-            case 'backdrop':
-                if (item.ImageTags?.Primary) {
-                    setImageStates((prev) => ({
-                        ...prev,
-                        [id]: 'primary',
-                    }));
-                    return;
-                }
-                break;
-        }
-
-        setImageStates((prev) => ({
-            ...prev,
-            [id]: 'failed',
-        }));
-    };
+    // Reset image fallbacks when switching between series and episode images
+    const [prevUseSeriesImage, setPrevUseSeriesImage] = useState(useSeriesImage);
+    if (prevUseSeriesImage !== useSeriesImage) {
+        setPrevUseSeriesImage(useSeriesImage);
+        setImageIndices({});
+    }
 
     return (
         <>
@@ -207,10 +173,11 @@ const BaseContinueRow = ({
                               <ContinueEpisodeCard
                                   key={item.Id}
                                   item={item}
-                                  imageState={imageStates[item.Id!] ?? 'thumb'}
+                                  imageIndex={imageIndices[item.Id!] ?? 0}
                                   onImageError={handleImageError}
                                   titleLine={titleLine}
                                   detailLine={detailLine}
+                                  useSeriesImage={useSeriesImage}
                               />
                           ))}
                 </ScrollableHomeSection>

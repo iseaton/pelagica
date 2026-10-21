@@ -79,6 +79,7 @@ import { useTheme } from '@/components/theme-provider';
 import { getEffectiveTheme } from '@/utils/effectiveTheme';
 import { logout } from '@pelagica/core';
 import { getUserProfileImageUrl } from '@pelagica/core';
+import { withBasePath } from '@pelagica/core';
 import { SUPPORTED_LIBRARY_COLLECTION_TYPES } from '../utils/itemTypes';
 import { DynamicIcon, type IconName } from 'lucide-react/dynamic';
 import { useTranslation } from 'react-i18next';
@@ -123,8 +124,10 @@ const AuthorizeQuickConnectDialog = ({
     isLoading,
     hasSuccess,
     hasError,
+    onReset,
 }: {
     onAuthorize: (code: string) => void;
+    onReset: () => void;
     isLoading: boolean;
     hasSuccess: boolean;
     hasError: boolean;
@@ -180,7 +183,13 @@ const AuthorizeQuickConnectDialog = ({
     }, [hasError, code.length]);
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+                if (nextOpen) onReset();
+                setOpen(nextOpen);
+            }}
+        >
             <DialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     <Fingerprint className="text-muted-foreground" />
@@ -626,6 +635,11 @@ const UserMenu = () => {
                     isLoading={quickConnectLoading}
                     hasSuccess={quickConnectSuccess}
                     hasError={quickConnectError}
+                    onReset={() => {
+                        setQuickConnectLoading(false);
+                        setQuickConnectSuccess(false);
+                        setQuickConnectError(false);
+                    }}
                 />
 
                 {isAdmin && (
@@ -686,7 +700,7 @@ const TopBar = ({ overlay = false }: { overlay?: boolean }) => {
         return onWindowMaximiseChange(setIsMaximised);
     }, [isWindowsOrLinux]);
 
-    const defaultLogo = effectiveTheme === 'dark' ? '/logo.svg' : '/logo-dark.svg';
+    const defaultLogo = withBasePath(effectiveTheme === 'dark' ? '/logo.svg' : '/logo-dark.svg');
     const configuredLogo =
         effectiveTheme === 'dark' ? config?.logoDarkUrl || '' : config?.logoLightUrl || '';
     const logoSrc = configuredLogo || defaultLogo;

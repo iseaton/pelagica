@@ -113,6 +113,8 @@ export interface ContinueWatchingSection extends BaseHomeScreenSection {
     type: 'continueWatching';
     titleLine?: ContinueWatchingTitleLine;
     detailLine?: ContinueWatchingDetailLine[];
+    /** Whether to show the series image instead of the episode image */
+    useSeriesImage?: boolean;
     limit?: number;
     /** Whether to use more accurate sorting that may involve additional API calls */
     accurateSorting?: boolean;
@@ -134,6 +136,8 @@ export interface NextUpSection extends BaseHomeScreenSection {
     type: 'nextUp';
     titleLine?: ContinueWatchingTitleLine;
     detailLine?: ContinueWatchingDetailLine[];
+    /** Whether to show the series image instead of the episode image */
+    useSeriesImage?: boolean;
     limit?: number;
 }
 
@@ -141,6 +145,8 @@ export interface ResumeSection extends BaseHomeScreenSection {
     type: 'resume';
     titleLine?: ContinueWatchingTitleLine;
     detailLine?: ContinueWatchingDetailLine[];
+    /** Whether to show the series image instead of the episode image */
+    useSeriesImage?: boolean;
     limit?: number;
 }
 
@@ -158,6 +164,16 @@ export interface StudiosSection extends BaseHomeScreenSection {
     type: 'studios';
     /** Maximum number of studios to display */
     limit?: number;
+}
+
+export interface RecentEpisodesSection extends BaseHomeScreenSection {
+    type: 'recentEpisodes';
+    /** Maximum number of episodes to display */
+    limit?: number;
+    /** The ID of the library to show episodes from */
+    libraryId: string;
+    titleLine?: ContinueWatchingTitleLine;
+    detailLine?: ContinueWatchingDetailLine[];
 }
 
 export const SEERR_DISCOVER_VARIANTS = ['trending', 'popularMovies', 'popularSeries'] as const;
@@ -181,6 +197,7 @@ export type HomeScreenSection =
     | GenresSection
     | LibrariesSection
     | StudiosSection
+    | RecentEpisodesSection
     | SeerrDiscoverSection;
 
 export const EPISODE_DISPLAYS = ['grid', 'row'] as const;
@@ -189,11 +206,15 @@ export type EpisodeDisplay = (typeof EPISODE_DISPLAYS)[number];
 export const SERIES_VIEWS = ['episodes', 'seasons'] as const;
 export type SeriesView = (typeof SERIES_VIEWS)[number];
 
+export const COLLECTION_SORT_OPTIONS = ['PremiereDateAsc', 'PremiereDateDesc', 'Random'] as const;
+export type CollectionSortOption = (typeof COLLECTION_SORT_OPTIONS)[number];
+
 export const DETAIL_BADGES = [
     'ReleaseYear',
     'ReleaseYearAndMonth',
     'ReleaseDate',
     'CommunityRating',
+    'CriticsRating',
     'PlayDuration',
     'PlayEnd',
     'SeasonCount',
@@ -220,6 +241,10 @@ export interface ItemPageSettings {
     showWatchlistButton?: boolean;
     /** Whether to autoplay a local trailer as a background video on item detail pages */
     autoPlayTrailers?: boolean;
+    /** Whether to show rows for the collections an item belongs to on movie and series detail pages */
+    showCollections?: boolean;
+    /** How to sort the items within collection rows on item detail pages */
+    collectionSort?: CollectionSortOption;
 }
 
 export interface ConfigLink {
@@ -230,6 +255,9 @@ export interface ConfigLink {
     /** The icon to display for the link */
     icon: string;
 }
+
+export type PlayerControlsLogoSize = 'small' | 'medium' | 'large';
+export const PLAYER_CONTROLS_LOGO_SIZES: PlayerControlsLogoSize[] = ['small', 'medium', 'large'];
 
 export interface AppConfig {
     /** Optional URL for Streamystats integration */
@@ -266,6 +294,8 @@ export interface AppConfig {
     hideBackToServerButton?: boolean;
     /** Whether to show the logo of the item in the player controls */
     showLogoInPlayerControls?: boolean;
+    /** Size of the logo in the player controls */
+    playerControlsLogoSize?: PlayerControlsLogoSize;
 }
 
 const DEFAULT_ITEM_PAGE_SETTINGS: ItemPageSettings = {
@@ -276,6 +306,8 @@ const DEFAULT_ITEM_PAGE_SETTINGS: ItemPageSettings = {
     showWatchlistButton: true,
     showDownloadButton: true,
     autoPlayTrailers: false,
+    showCollections: true,
+    collectionSort: 'PremiereDateAsc',
 };
 
 const DEFAULT_CONFIG: AppConfig = {
@@ -290,6 +322,7 @@ const DEFAULT_CONFIG: AppConfig = {
     logoLightUrl: '',
     logoDarkUrl: '',
     showLogoInPlayerControls: true,
+    playerControlsLogoSize: 'medium',
     homeScreenSections: [
         {
             type: 'mediaBar',
